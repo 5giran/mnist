@@ -27,6 +27,13 @@ class ReLU:
             x와 같은 shape. x > 0인 위치만 원래 값을 유지합니다.
         """
         # TODO: x > 0 위치를 self.mask에 저장하고, 음수/0 위치는 0으로 바꾸세요.
+        self.mask = x > 0    # mask에 t/f, 1/0 값을 저장해서 - 크기 비교식
+        out = self.mask * x  # 입력값 x에 곱하면 ReLU의 의도대로 동작하게 된다.
+
+        # 순전파에서는 실제 입력값 x에 mask를 곱한다(ReLU로 가공해서 0/1이 된 값).
+
+        return out
+    
         raise NotImplementedError("ReLU.forward를 구현하세요.")
 
     def backward(self, dout):
@@ -38,6 +45,11 @@ class ReLU:
             ReLU 입력 x에 대한 gradient. forward 때 x <= 0이었던 위치는 0입니다.
         """
         # TODO: forward에서 저장한 self.mask를 이용해 gradient가 흐를 위치만 남기세요.
+        dx = dout * self.mask # chain rule로 두 편미분(상위 층 gradient × 현재 층 gradient)을 곱해 하류로 흘려보낸다.
+        return dx
+    
+        # 역전파에서는 층층이 누적되는 전파되는 한다: 두 gradient를 곱해서 새 gradient를 만드는 연산, 두 편미분을 곱함.
+
         raise NotImplementedError("ReLU.backward를 구현하세요.")
 
 
@@ -59,6 +71,14 @@ class Softmax:
         """
         # TODO: 수치 안정성을 위해 row별 max를 뺀 뒤 softmax 확률을 계산하세요.
         # 힌트: np.max(..., axis=1, keepdims=True), np.exp, np.sum을 사용합니다.
+
+        # overflow 방지
+        rowmax_x = x - np.max(x, axis=1, keepdims=True)
+        # 수식 코드 적용
+        exp_x = np.exp(rowmax_x)
+        self.out = exp_x / np.sum(exp_x, axis=1, keepdims=True)
+        return self.out  # 이 리턴값을 전부 더하면 1이 된다는거지. 각 리턴값들이 해당 원소가 가진 비율이니까
+
         raise NotImplementedError("Softmax.forward를 구현하세요.")
 
     def backward(self, dout):
@@ -67,4 +87,5 @@ class Softmax:
         여기서는 받은 gradient를 그대로 통과시킵니다.
         """
         # TODO: train()에서 만든 gradient를 그대로 반환하세요.
+        return dout  # 얘는 뭘 그대로 반환하는거지??
         raise NotImplementedError("Softmax.backward를 구현하세요.")
