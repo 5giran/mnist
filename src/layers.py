@@ -33,6 +33,15 @@ class Affine:
             (batch_size, output_dim)
         """
         # TODO: backward에서 사용할 입력 x를 저장하고 x @ W + b를 반환하세요.
+
+        # forward가 끝나도 backward에서 사용하기 위해서 forward와 라이프사이클이 같은 지역변수로 선언하지 않고
+        # self의 멤버 변수로 선언해줌.
+        # 이전까지 지역변수는 그 값 그대로 함수 return값으로 사용했기 때문에 괜찮았던 것
+        self.x = x
+        # @: 넘파이 행렬곱 연산자- np.dot() 쓰면 된다는 뜻.
+        aff = np.dot(x, self.W) + self.b
+        return aff
+
         raise NotImplementedError("Affine.forward를 구현하세요.")
 
     def backward(self, dout):
@@ -47,7 +56,13 @@ class Affine:
             self.dW, self.db에 optimizer가 사용할 gradient를 저장합니다.
         """
         # TODO: self.dW, self.db, dx를 계산하세요.
-        # 힌트: dW = x.T @ dout, db = batch 방향 합, dx = dout @ W.T
+        # 힌트: dW = x.T @ dout, db = batch 방향으로 합을 구해라, dx = dout @ W.T
+        dW = np.dot(self.x.T, dout)
+        db = np.sum(dout, axis=0)
+        dx = np.dot(dout, self.W.T)
+
+        return dx
+        
         raise NotImplementedError("Affine.backward를 구현하세요.")
 
 
